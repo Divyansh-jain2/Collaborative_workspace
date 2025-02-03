@@ -29,7 +29,7 @@ const page = async({params:{id}}:SearchParamProps) => {
   }));
   const currentUserType=room.usersAccesses[cleakUser.emailAddresses[0].emailAddress]?.includes('room:write')?
   'editor':'viewer';
-
+  // console.log(room.metadata.createId);
   return (
     <main className="flex flex-col items-center w-full">
         <CollaborativeRoom 

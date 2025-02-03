@@ -1,8 +1,10 @@
 import Image from 'next/image';
 import React, { useState } from 'react'
 import UserTypeSelector from './UserTypeSelector';
+import { Button } from './ui/button';
+import { removeCollaborator, updateDocumentAccess } from '@/lib/actions/user.actions';
 
-const Collaborator = ({roomId,creatorId,collaborator,email,user}:CollaboratorProps) => {
+const Collaborator = ({roomId,creatorId,email,collaborator,user}:CollaboratorProps) => {
     //we also want to be able to change the permissions of already added collaborators
     //viewer or editor
 
@@ -10,11 +12,25 @@ const Collaborator = ({roomId,creatorId,collaborator,email,user}:CollaboratorPro
     const [loading,setLoading]=useState(false);
 
     const shareDocumentHandler=async(type:string)=>{
-        
+        setLoading(true);
+        await updateDocumentAccess({
+            roomId,
+            email,
+            userType:type as UserType,
+            updatedBy :user
+        });
+        setLoading(false);
     }
     const removeCollaborateHandler=async(email:string)=>{
-
+        setLoading(true);
+        
+        await removeCollaborator({
+            roomId,
+            email
+        });
+        setLoading(false);
     }
+    // console.log(typeof(creatorId),typeof(collaborator.id));
     return (
         <li className="flex items-center justify-between gap-2 py-3">
             <div className="flex gap-2">
@@ -34,6 +50,7 @@ const Collaborator = ({roomId,creatorId,collaborator,email,user}:CollaboratorPro
                 </div> 
             </div>
             {/* if the user is the owner display owner */}
+            
             {creatorId===collaborator.id ?(
                 <p className='text-sm text-blue-100'>Owner</p>
             ):(
@@ -44,6 +61,10 @@ const Collaborator = ({roomId,creatorId,collaborator,email,user}:CollaboratorPro
                         setUserType={setUserType ||'viewer'}
                         onClickHandler={shareDocumentHandler}
                     />
+                    <Button type='button' onClick={()=>
+                        removeCollaborateHandler(collaborator.email)}>
+                            Remove
+                    </Button>
                 </div>
             )
                 

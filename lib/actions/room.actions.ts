@@ -9,6 +9,7 @@ import {nanoid} from 'nanoid';
 import { liveblocks } from '../liveblocks';
 import { revalidatePath } from 'next/cache';
 import { parseStringify } from '../utils';
+import { redirect } from 'next/navigation';
 
 export const createDocument=async ({userId,email}:CreateDocumentParams)=>{
         //generate a random room id
@@ -39,7 +40,7 @@ export const createDocument=async ({userId,email}:CreateDocumentParams)=>{
             const room = await liveblocks.createRoom(roomId, {
                 metadata,
                 usersAccesses,
-                defaultAccesses: ['room:write'],
+                defaultAccesses: [],
             });
             
             //a new document is created when a room is created
@@ -60,11 +61,11 @@ export const getDocument=async({roomId,userId}:{roomId:string,userId:string})=>{
     try{
         const room=await liveblocks.getRoom(roomId);
 
-        // const hasAccess=Object.keys(room.usersAccesses).includes(userId);
+        const hasAccess=Object.keys(room.usersAccesses).includes(userId);
         
-        // if(!hasAccess){
-        //     throw new Error('You do not have access to this document');
-        // }
+        if(!hasAccess){
+            throw new Error('You do not have access to this document');
+        }
         return parseStringify(room);    
     }catch(error){
         console.log(`Error getting room: ${error}`);
@@ -98,3 +99,13 @@ export const updateDocumentTitle=async({roomId,title}:{roomId:string,title:strin
     }
 }
 
+export const deleteDocument=async(roomId:string)=>{
+    try{
+        await liveblocks.deleteRoom(roomId);
+        revalidatePath('/');
+        redirect('/');
+    }
+    catch(erroor){
+        console.log('error deleting document');
+    }
+}

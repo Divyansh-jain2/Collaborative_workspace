@@ -66,6 +66,7 @@ const CollaborativeRoom = ({roomId,roomMetadata,users,currentUserType}:Collabora
             inputRef.current?.focus();
         }
     },[editing]);
+    // console.log(roomMetadata.createId);
     return (
         <RoomProvider id={roomId}>
             <ClientSideSuspense fallback={<Loader/>}>
@@ -108,7 +109,8 @@ const CollaborativeRoom = ({roomId,roomMetadata,users,currentUserType}:Collabora
                             <ActiveCollaborators/>
                             <ShareModal roomId={roomId} 
                                 collaborators={users}
-                                creatorId={roomMetadata.creatorId}/>
+                                creatorId={roomMetadata.createId}
+                                />
                             <SignedOut>
                                 <SignInButton />
                             </SignedOut>

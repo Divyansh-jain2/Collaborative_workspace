@@ -11,7 +11,7 @@ declare type SearchParamProps = {
   declare type UserType = "creator" | "editor" | "viewer";
   
   declare type RoomMetadata = {
-    creatorId: string;
+    createId: string;
     email: string;
     title: string;
   };

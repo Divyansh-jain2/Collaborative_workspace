@@ -1,13 +1,15 @@
 'use server'
 
 import { clerkClient } from "@clerk/nextjs/server"
-import { parseStringify } from "../utils";
+import { getAccessType, parseStringify } from "../utils";
 import { liveblocks } from "../liveblocks";
+import { revalidatePath } from "next/cache";
+import { nanoid } from "nanoid";
 
 
 export const getClearkUsers=async({userIds}:{userIds: string[]})=>{
     try{
-        //changed these lines from yt comment section
+        //changed these lines 
         const client = await clerkClient();
         const { data } = await client.users.getUserList({
             emailAddress: userIds,
@@ -47,5 +49,58 @@ export const getDocumentUsers=async({roomId,currentUser,text}:{roomId:string,cur
     }
     catch(error){
         console.log(`Error getting users: ${error}`);
+    }
+}
+
+export const updateDocumentAccess=async({roomId,email,userType,updatedBy}:ShareDocumentParams)=>{
+    try{
+        const usersAccesses:RoomAccesses={
+            [email]:getAccessType(userType) as AccessType,
+        }
+        const room=await liveblocks.updateRoom(roomId,{
+            usersAccesses
+        })
+        if(room){
+            const notificationId=nanoid();
+
+            await liveblocks.triggerInboxNotification({
+                userId: email,
+                kind:'$documentAccess',
+                subjectId:notificationId,
+                activityData:{
+                    userType,
+                    title:'You are invited to collaborate on a document',
+                    updatedBy:updatedBy.name,
+                    avatar:updatedBy.avatar,
+                    email:updatedBy.email,
+                },
+                roomId,
+            })
+        }
+        revalidatePath(`/documents/${roomId}`);
+        return parseStringify(room);
+    }
+    catch(error){
+        console.log(`Error sharing document: ${error}`);
+    }
+}
+export const removeCollaborator=async({roomId,email}:{roomId:string,email:string})=>{
+    try{
+        const room=await liveblocks.getRoom(roomId);
+        
+        if(room.metadata.email===email){
+            throw new Error('You cannot remove the owner of the document');
+        }
+        const updatedRoom=await liveblocks.updateRoom(roomId,{
+            usersAccesses:{
+                //putting this user to null to remove the user from the room
+
+                [email]:null,
+            }
+        })
+    }
+
+    catch(error){
+        console.log(`Error removing collaborator: ${error}`);
     }
 }
