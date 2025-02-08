@@ -105,7 +105,7 @@ export const deleteDocument=async(roomId:string)=>{
         revalidatePath('/');
         redirect('/');
     }
-    catch(erroor){
+    catch(error){
         console.log('error deleting document');
     }
 }
